@@ -1,0 +1,30 @@
+Majesty Gold HD is the original game represented by this project. Original
+game names, executable code, artwork, audio, music, quests and other data
+retain their original ownership and notices. Original in-game credits are
+preserved. This project is not affiliated with or endorsed by the original
+game's developers or publishers.
+
+The configuration, tests, tools and documentation in this repository are covered
+by LICENSE. The native host, compatibility runtime and translator are recomp-kit,
+the git submodule at kit/, under its own LICENSE and NOTICE.
+
+Original game files are not distributed in this repository and are not relicensed
+by its MIT license. A translation of the one supported build of the game's
+DirectDraw executable, "MajestyHD - Old.exe" (SHA-256 654365fd...d5542), is
+generated locally under ignored build/ from the player's own copy by the kit's
+tools; nothing generated is tracked, and the translation claims nothing over the
+original work's behaviour or ownership. The game's executables, data, artwork,
+audio, music and quests are still required from the player's own copy and are
+never included.
+
+Ghidra, Capstone, pefile, Unicorn, NumPy, Pillow and innoextract are external
+development tools with their own licenses, not original game dependencies at
+runtime. The kit's NOTICE lists the components it links (Lua, TinySoundFont,
+SDL3, volk, the Vulkan headers) and their licenses.
+
+The installer this port was measured from also contains third-party Windows
+components that are not part of the port and are excluded from every bundle:
+the GOG Galaxy client library (Galaxy.dll), RAD Game Tools' Bink video
+library (binkw32.dll), the Visual C++ 2008 and DirectX redistributables under
+__redist/, and the Steam client library shipped with the mod SDK. They retain
+their own ownership and licenses.

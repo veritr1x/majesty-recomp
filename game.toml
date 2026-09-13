@@ -1,0 +1,79 @@
+# game.toml - everything the kit needs to know about Majesty Gold HD (the
+# 2018 GOG release, offline installer 1.5.2.28) that is not derivable from the
+# binary. The installer ships two executables; this config pins the DirectDraw
+# one, "MajestyHD - Old.exe" (Majesty HD 1.5.1.2, 2011), because the kit
+# models DirectDraw and fixed-function Direct3D and the main MajestyHD.exe
+# renders through Direct3D 9. See docs/analysis.md.
+#
+# Addresses are guest addresses in the pinned executable. The [hooks] values
+# are sentinels: they point into the zero-filled section padding after .rsrc
+# (0x00725d18-0x00725fff; the section is mapped to 0x00726000), which the
+# game never references, so the kit's hooks compile and never fire. Each one
+# is annotated with why this game has no site for it.
+
+[game]
+id = "majesty"
+name = "Majesty Gold HD"
+app_name = "MajestyRecomp"
+bundle_id = "dev.recompkit.majesty"
+executable = "MajestyHD - Old.exe"
+sha256 = "654365fd1bdefa6d7f2349d162869f255388fadcb1bb8db9f7db2f3468dd5542"
+image_base = 0x00400000
+entry_point = 0x0064d96d
+guest_root = 'C:\GOG Games\Majesty Gold HD'
+# Where a developer checkout finds the game, relative to the repository root.
+# tools/setup.py links your installation here; an innoextract of the GOG
+# installer placed here directly is accepted too.
+developer_exe = "original/gog/MajestyHD - Old.exe"
+
+[translate]
+# Ghidra listing directory holding functions.tsv and functions/*.asm,
+# relative to the repository root. tools/analyze.py exports them.
+listings = "analysis/decompiled/MajestyHD - Old.exe"
+# Curated symbols, relative to this directory.
+globals = "globals.toml"
+# The kit's translator wants a visual-phase counter; this game has none that
+# has been audited. Sentinel, and no reads are rewritten.
+animation_counter = 0x00725e00
+volatile_reads = []
+
+[hooks]
+# Every address here is a sentinel: the kit's hooks are shaped by the game the
+# kit began with, and this game gives them nothing to attach to.
+# runtime/kernel32.cpp native_frame_clock: GetTickCount return addresses of
+# that game's draw-loop waits. This game paces its main loop (FUN_0049ac60)
+# on timeGetTime, not GetTickCount, so the pacing hook has no site; the app
+# runs at the display's rate without it. Pinning the clock in 16 ms steps
+# still busy-waits there (see docs/analysis.md); 33 ms and up run.
+frame_clock_begin = 0x00725e10
+frame_clock_wait = 0x00725e14
+frame_clock_wait_clamp = 0x00725e18
+frame_clock_clamp_deadline = 0x00725e20
+frame_clock_wait_deadline = 0x00725e24
+# dx/ddraw.cpp: mouse-pointer surface globals, for a host-drawn pointer. This
+# game composes its own cursor into the frame it presents; nothing to hook.
+cursor_surface_ptrs = [0x00725e30, 0x00725e34]
+# host/input_gate.cpp: a DirectInput mouse device and its vtable. This game
+# reads the mouse through user32 (GetCursorPos, GetAsyncKeyState), not
+# DirectInput, so these will never be real.
+mouse_vtable = 0x00725e40
+mouse_device_ptr = 0x00725e44
+mouse_device_right = 0x00725e48
+# host/smoke_main.cpp: the camera record the smoke script inspects. Not
+# identified; the smoke scripts here judge frames, not the camera.
+camera = 0x00725e50
+
+[setup]
+# tools/setup.py: what a supported installation must contain. No annotation
+# metadata exists for this executable; tools/analyze.py runs Ghidra's own
+# analysis instead of importing one.
+required_dirs = ["Data", "DataMX", "Quests", "QuestsMX", "Music"]
+
+[bundle]
+# Left out of the iOS bundle: the installer's redistributables and support
+# files, GOG Galaxy metadata, the mod SDK (Windows tools), the Windows-only
+# DLLs (Galaxy, Bink), the manual and readme, and the Direct3D 9 executable
+# this config does not run.
+exclude = ["__redist", "__support", "app", "commonappdata", "tmp", "SDK",
+           "*.dll", "*.pdf", "*.htm", "*.url", "*.hashdb", "*.info", "*.script",
+           "MajestyHD.exe"]
