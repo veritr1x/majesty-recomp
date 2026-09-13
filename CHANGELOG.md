@@ -2,9 +2,19 @@
 
 ## Unreleased
 
+- The game plays on the iPad by touch and with a Bluetooth mouse: taps take
+  the menus into a quest and select buildings there, a finger held against
+  the top edge or a mouse pushed against the top scrolls the map, Exit Game
+  closes the app. Kit: the touch mapper's release waits for presented
+  frames and carries the press position (it carried 0,0 after a vector
+  reallocation, which failed every tap and flung the view to the map's
+  top-left), the edge snap grows by iPadOS's status bar strip, a hardware
+  pointer against that strip is held on the edge through the glide iPadOS
+  gives it. `RECOMP_*` switches reach the device through
+  `Documents/switches.txt`. Run log: "playing on the iPad by hand".
 - The iPad app builds, signs, installs and boots to the main menu with music
   (`tools/build.py --target ios`); the game is seeded from the bundle into the
-  app's Documents on first launch. Touch play is not yet confirmed by hand.
+  app's Documents on first launch.
 - The `[hooks]` sentinels in `game.toml` are annotated with why this game has
   no site for each kit hook. The main menu's Version label fills in from the
   executable's version resource, and the game's log stops reporting a failed

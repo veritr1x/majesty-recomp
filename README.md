@@ -33,7 +33,7 @@ the kit's supported envelope today, so that executable is not translated and
 is excluded from bundles. Both play the same data. The reasoning and the
 measurements are in [docs/analysis.md](docs/analysis.md).
 
-## Status: a freestyle quest runs, with music, saves and settings; the iPad app boots
+## Status: a freestyle quest runs, with music, saves and settings; it plays on the iPad by touch
 
 The pinned executable translates, compiles and runs: the kit's macOS app
 boots to the main menu, and the kit's smoke host drives it through the name
@@ -95,9 +95,14 @@ SDK, the Windows DLLs, the Direct3D 9 executable) and seeds it into its own
 Documents on first launch, 724 MB, stamped with the executable's SHA-256 so a
 rebuilt bundle is recognised. It runs fullscreen at the game's 800x600, 16
 bpp, scaled to the display; the kit's pointer gestures apply (a tap places
-the pointer and clicks, a long press right-clicks, the on-screen keypad
-stands in for the keyboard). `tools/ios_logs.py --device <id> --game-dir .`
-pulls the app's Documents back to `build/ios-pull`.
+the pointer and clicks, a long press right-clicks, a finger held against an
+edge scrolls the map as the mouse on that edge would, two fingers pan with
+the arrow keys, the on-screen keypad stands in for the keyboard). A
+Bluetooth mouse works too; pushed against the top of the screen it scrolls
+the map up even though iPadOS keeps the pointer out of the status bar strip.
+Exit Game closes the app. `tools/ios_logs.py --device <id> --game-dir .`
+pulls the app's Documents back to `build/ios-pull`. The session that made
+taps work on the device is in the run log ("playing on the iPad by hand").
 
 ## Check a change
 

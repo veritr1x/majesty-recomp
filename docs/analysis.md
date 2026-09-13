@@ -159,6 +159,55 @@ write it.
 
 Recorded runs of the pipeline against this executable, newest first.
 
+#### 2026-09-13 (late night): playing on the iPad by hand
+
+Build 3 to build 9 on the iPad Pro (iPadOS 17+, 1210x834 points, 2420x1668
+pixels; the game at 800x600 letterboxed with 98-pixel pillars). The console
+was streamed with `devicectl device process launch --console` and the kit's
+`RECOMP_TRACE_POINTER=1` reached the device through `Documents/switches.txt`.
+Everything below is kit work on the `majesty-translator` branch, uncommitted
+at the time of writing; each item has an `input_touch_tests` case.
+
+- Taps landed nowhere. Two causes, found in this order. First, the game polls
+  its mouse buttons once per frame with `GetKeyState(VK_LBUTTON)`
+  (`FUN_004f6590`) and presents at 16 frames a second on the iPad (3917
+  presents in 238 s), so the touch mapper's 90 ms clock-timed press and
+  release often fell between two polls. The release now also waits for two
+  presented frames after the press (`TouchMapper::frames_presented`, fed from
+  the host's present count), with a 400 ms ceiling for a game that stops
+  presenting. Second, and worse, the mapper read the press point back out of
+  the action vector after pushing the press into it, past a reallocation; on
+  the device the release then carried 0,0, so every tap pressed one control
+  and released on another (nothing happened), and the game's cursor was moved
+  to 0,0, where its edge scroll lives, so the view flew to the map's top-left
+  corner after each tap. With both fixed, the user's taps take Play Game,
+  ACCEPT, the quest map and OK into "The Bell, the Book, and the Candle" and
+  select buildings there; 22 taps, every release at its press point.
+- The top edge. iPadOS keeps a 32-point strip along the top (the status bar,
+  visible in screenshots despite `UIStatusBarHidden`) and 25 at the bottom;
+  a finger on the top bezel arrives no closer than 32 points down and a
+  hardware pointer stops there too, so the mapper's 16-point edge snap never
+  saw either. The snap margin now grows by the window's safe-area inset on
+  each edge (`set_edge_insets`, from `SDL_GetWindowSafeArea`), and a pointer
+  resting within 16 points of the strip's inner side is placed on the edge
+  behind it (`pointer_behind_strip`). A finger held at the top scrolls the
+  map up (user, build 6). The mouse pushed against the top scrolls the map up
+  (user, build 10; the unthrottled trace shows the pointer resting at 33 to 41
+  points, every event delivered as row 0). The game's edge scroll ramps up
+  over a second of the cursor staying in the 8-row zone (`FUN_00440500` times
+  it), which is why a hand wandering 8 points in and out of the zone looked
+  like nothing, and why the first slack of 4 points was not enough.
+- A drag the system cancels (an edge gesture iOS claims) released its button
+  at 0,0 as well; it releases where the cursor was placed now.
+- Still open: the right and bottom edges do not scroll in the smoke host
+  either (left does, 90% of the map moved; right at x 795 and bottom at y 595
+  did not), so that is the game under the kit, not the touch layer. The kit's
+  settings page opened several times during the session: its key is F10, which
+  the on-screen keypad and the three-finger tap both send. Exit Game closes the
+  app on the iPad since build 3 (`platform_ui_process_exit`). The music
+  "no such file" line for a bare `GeneralTheme.mp3` is the game's first try
+  before the `Music\` path, as on the Mac.
+
 #### 2026-09-13 (night): how the camera moves, measured
 
 Smoke host, a running Beginner quest, the map view compared pixel for pixel
