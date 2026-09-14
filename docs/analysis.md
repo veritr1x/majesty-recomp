@@ -157,6 +157,73 @@ write it.
 
 Recorded runs of the pipeline against this executable, newest first.
 
+#### 2026-09-14: Android APK with FFmpeg (Task 2.1)
+
+Started from game `main` at `90027ba` and clean kit branch `majesty` at
+`4574a35c3702a9750516c545a39c136cb1808432`. No kit changes or submodule
+re-pin were needed. The real Android build uses the pinned DirectDraw
+translation already in `build/recomp/gen/`; no regeneration was requested.
+The orchestrator's concurrent iOS check remains separate; `build/ios` was
+not touched by this task.
+
+Environment for both Android commands, from the game repository root:
+
+```sh
+export JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home'
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+export PATH="$PWD/.venv/bin:$ANDROID_HOME/platform-tools:$PATH"
+```
+
+Installed SDK platform 36 and build-tools 37.0.0 match the kit's Gradle
+template; its wrapper uses Gradle 9.7.1. CMake selected NDK Clang 18.0.3,
+`arm64-v8a`, `android-29` and `RECOMP_VIDEO=ON` in both Android caches.
+The manifest requires Vulkan 1.1. FFmpeg 7.1.1 was fetched and cross-built
+for each preset. The stub build waited for the existing build lock before
+configuring; it did not bypass the lock.
+
+Commands and results (logs and listings under ignored `build/task-2.1/`):
+
+| Command | Exit | Result / log |
+| --- | --- | --- |
+| `adb devices -l` | 0 | Empty device list |
+| `.venv/bin/python tools/build.py --target android --stub` | 0 | Stub APK: 42,043,190 bytes; Gradle 36 tasks executed; `android-stub.log` |
+| `unzip -l build/android/app/build/outputs/apk/debug/app-debug.apk` (after stub) | 0 | 21 entries, all four required libraries and FFmpeg notice; `android-stub-apk-contents.txt` |
+| `.venv/bin/python tools/build.py --target android` | 0 | Translated APK: 276,758,031 bytes (263.94 MiB); Gradle 4 tasks executed, 32 up to date; `android.log` |
+| `unzip -l build/android/app/build/outputs/apk/debug/app-debug.apk` (after translation) | 0 | 21 entries, all four required libraries and FFmpeg notice; `android-apk-contents.txt` |
+| `.venv/bin/python -m pytest -q tests` | 0 | 4 passed in 0.01 s; `game-tests.log` |
+| `.venv/bin/python tools/test.py` | 0 | 123 passed, 3 skipped in 7.38 s; `portable-tests.log` |
+| `.venv/bin/python tools/build.py --stub` | 0 | Linked `build/stub/MajestyRecomp.app`; `macos-stub.log` |
+
+The stub command ran before the translated command. Both package to
+`build/android/app/build/outputs/apk/debug/app-debug.apk`, so the final
+artifact is the translated APK; the stub listing was saved before it was
+replaced. Python `Path.stat().st_size` independently confirmed the final
+276,758,031-byte size. Native outputs are
+`build/cmake/android-stub/host/libmain.so` and
+`build/cmake/android/host/libmain.so`, respectively.
+
+Both APK listings contain `lib/arm64-v8a/libmain.so`,
+`lib/arm64-v8a/libavcodec.so`, `lib/arm64-v8a/libavformat.so`,
+`lib/arm64-v8a/libavutil.so` and `assets/ffmpeg-NOTICE.md`.
+In the translated APK their uncompressed sizes are 234,711,000, 396,936,
+236,216, 714,936 and 34,538 bytes, respectively. Game data is not packaged
+in the APK; the README documents `--push-game` and the external data path.
+
+Builds succeeded with warnings: NDK/CMake and Gradle deprecations,
+FFmpeg numeric conversions, deprecated `tmpnam`, keypad C-linkage return
+types, and the manifest's ignored `package` attribute. Each Android build
+logged 43 compiler warning lines. Gradle could not strip the four native
+libraries and packaged them as-is. No warning fixes were attempted in this
+documentation task.
+
+Both builds reported no attached Android device and skipped installation,
+launch and logcat. Installation, boot, movie playback/audio, touch gameplay,
+Save/Load, background/resume and exit remain unverified on Android.
+The documented push and `switches.txt` commands were checked against the
+kit's build tool and SDL host source, not executed on a device. No game
+files, generated code, binaries, logs or profiles are committed.
+
 #### 2026-09-14: intro playback and quest regression at 4574a35 (Task 1.3)
 
 Continued at Step 3 after Tasks 1.1, 1.2, 1.4 and 1.5. The clean kit

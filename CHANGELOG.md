@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Android stub and translated APK builds verified with FFmpeg at kit
+  `4574a35`. Document the Android toolchain, build and data-push commands,
+  external game/profile paths and `switches.txt`. Installation and gameplay
+  remain unverified because no Android device was attached.
 - Intro movies play through FFmpeg on macOS, with non-silent audio verified
   in the headless host. Re-pin the kit to `majesty` `4574a35` for Bink
   file-handle input, dynamic imports, frame-driven audio and safe teardown.

@@ -104,6 +104,81 @@ Exit Game closes the app. `tools/ios_logs.py --device <id> --game-dir .`
 pulls the app's Documents back to `build/ios-pull`. The session that made
 taps work on the device is in the run log ("playing on the iPad by hand").
 
+## Play on an Android tablet
+
+**Build verified; device play unverified.** The stub and real translation
+build into an arm64-v8a APK for Android 10 (API 29) or later, requiring
+Vulkan 1.1. No Android device was attached for this check; installation,
+boot, movies, audio, touch play, Save/Load and background/resume remain
+unverified. The APK includes `libmain.so`, `libavcodec.so`, `libavformat.so`
+and `libavutil.so` under `lib/arm64-v8a/`, plus
+`assets/ffmpeg-NOTICE.md`. The first build fetches and cross-builds FFmpeg.
+Measurements and build warnings are in the
+[Android run record](docs/analysis.md#2026-09-14-android-apk-with-ffmpeg-task-21).
+
+First complete the game preparation and translation steps under
+[Build on macOS](#build-on-macos). Android uses the existing
+`build/recomp/gen/`; omit `--stub` and `--regenerate` for the translated
+build. Install Android Studio, SDK platform 36, build-tools 37.0.0,
+platform-tools and NDK 27.2.12479018. On the development Mac (adjust paths
+for your installation):
+
+```sh
+export JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home'
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+export PATH="$PWD/.venv/bin:$ANDROID_HOME/platform-tools:$PATH"
+.venv/bin/python tools/build.py --target android
+```
+
+The APK is `build/android/app/build/outputs/apk/debug/app-debug.apk`;
+the native library is `build/cmake/android/host/libmain.so`. With no
+device, the build skips installation and launch. Add `--no-install` to
+build without device actions when a tablet is connected.
+
+Enable USB debugging, connect and authorize the tablet, then run:
+
+```sh
+adb devices
+.venv/bin/python tools/build.py --target android --push-game --console
+```
+
+Use `--device <adb serial>` when multiple devices are ready. The command
+rebuilds as needed, installs the APK, stages `original/gog` minus
+`[bundle].exclude` into `build/android/game`, pushes it, launches the
+activity and streams logcat. An explicit `--push-game` requires a ready
+device. The pinned DirectDraw executable and the cinematics in `Data/`
+and `DataMX/` are retained; the Direct3D 9 executable, Windows DLLs and
+installer support files are excluded.
+
+Game data is pushed separately from the APK. SDL supplies the app's
+external files directory, normally
+`/sdcard/Android/data/dev.recompkit.majesty/files/`; the host expects
+`game/MajestyHD - Old.exe` beneath it and verifies the pinned hash. Missing
+data logs the expected path and push command, then exits. Android uses
+these files directly. The default writable profile is
+`/sdcard/Android/data/dev.recompkit.majesty/files/profile/`. Pushing data
+preserves device files and the profile; back it up before uninstalling
+the app or clearing its storage.
+
+For runtime switches, put full `RECOMP_` names in external `switches.txt`.
+For example, `RECOMP_FRAME_TIMINGS` takes a CSV path:
+
+```sh
+cat > build/android-switches.txt <<'EOF'
+RECOMP_FRAME_TIMINGS=/sdcard/Android/data/dev.recompkit.majesty/files/frame-timings.csv
+EOF
+adb push build/android-switches.txt /sdcard/Android/data/dev.recompkit.majesty/files/switches.txt
+adb shell am force-stop dev.recompkit.majesty
+adb shell am start -n dev.recompkit.majesty/dev.recompkit.RecompActivity
+# After playing and quitting normally:
+adb pull /sdcard/Android/data/dev.recompkit.majesty/files/frame-timings.csv build/android-frame-timings.csv
+```
+
+Record the device/GPU, intro playback and skips, music and effects, touch
+input in a quest, Save/Load, background/resume and Exit Game in
+[docs/analysis.md](docs/analysis.md). These checks still need a tablet.
+
 ## Check a change
 
 ```sh
