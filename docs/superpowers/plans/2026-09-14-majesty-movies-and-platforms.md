@@ -123,7 +123,7 @@ From `analysis/decompiled/MajestyHD.exe/functions/` (the listing directory name 
 **Files:**
 - Modify: `README.md` (a platform status table like the sibling's with rows macOS, iPadOS, Linux, Windows, Android: verified status, build command, remaining checks; Linux/Windows sections with `tools/build.py --regenerate --jobs 8` and the kit's `package_desktop.py` output under `build/package`, `RECOMP_EXE`; both marked never run on hardware), `.github/workflows/checks.yml` (drop the `KIT_TOKEN` checkout token and the "private submodule" comment: the kit is public; add `windows-2025` to the matrix for the portable tests and the stub build exactly as `~/Documents/Tests/pharaoh-recomp/.github/workflows/*.yml` does), `docs/analysis.md`, `CHANGELOG.md`
 
-- [ ] **Step 1**: On macOS, run the kit's packager tests (`.venv/bin/python -m pytest -q kit/tests -k package` or the kit's documented command; find it in `kit/docs/testing.md`) and `.venv/bin/python tools/test.py`; record. The Linux and Windows native builds cannot run here; the README's rows say "never built or run on Linux/Windows; packager tests use fake binaries on macOS".
+- [ ] **Step 1**: On macOS, run the kit's packager tests `.venv/bin/python -m pytest -q kit/tools/tests/test_package_desktop.py` and `.venv/bin/python tools/test.py`; record. The Linux and Windows native builds cannot run here; the README's rows say "never built or run on Linux/Windows; packager tests use fake binaries on macOS".
 - [ ] **Step 2**: README table and sections, CI change, docs, commit: "Platform status, Linux/Windows packaging notes and Windows CI".
 
 ### Task 2.3 (orchestrator): iPad build, install, intro on the device
