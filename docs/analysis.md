@@ -157,6 +157,21 @@ write it.
 
 Recorded runs of the pipeline against this executable, newest first.
 
+#### 2026-09-14: movies play on the iPad (Task 2.3)
+
+Built from the orchestrator's shell with `tools/build.py --target ios
+--team <TEAM_ID> --device <DEVICE_ID> --no-install` at game `d9f4767` / kit
+`4574a35`, installed with `xcrun devicectl device install app` (the first
+attempts failed while the iPad reported `unavailable`; it succeeded once the
+device showed `connected`) and launched with `--console` for 75 seconds
+(`build/ios-logs/console-3.log`). The log shows the mode switch to 640x480,
+`bink: open "...\Data\cinedata3.dat" -> 640x480, 180 frames, 15/1 fps`, the
+audio device starting and channel 0 becoming a stream, the second movie
+(`2204 frames`), two audio-sink reports with 0 late and 0 starved pulls, the
+switch back to 800x600, and later the expansion movie from
+`DataMX\mx_cinedata1.cam` (`2301 frames`). No fault or abort. Not checked in
+this run: gameplay by hand on the new kit, manual save and load.
+
 #### 2026-09-14: desktop packaging notes and Windows CI (Task 2.2)
 
 Started from clean game `main` at `b505e93` and clean kit branch `majesty`

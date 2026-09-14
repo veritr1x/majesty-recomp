@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- iPad: the logo, intro and expansion movies play with sound on the device
+  with kit `4574a35`; the README's iPadOS row and the run log record the
+  console evidence.
 - Add a platform status table and Linux/Windows build, package and
   `RECOMP_EXE` launch notes. Both desktop ports remain never built or run
   on their target OS; packager tests use fake binaries on macOS. Record the

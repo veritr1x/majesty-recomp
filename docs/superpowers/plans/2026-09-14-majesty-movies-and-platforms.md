@@ -151,10 +151,10 @@ From `analysis/decompiled/MajestyHD.exe/functions/` (the listing directory name 
 - [ ] **Step 1**: On macOS, run the kit's packager tests `.venv/bin/python -m pytest -q kit/tools/tests/test_package_desktop.py` and `.venv/bin/python tools/test.py`; record. The Linux and Windows native builds cannot run here; the README's rows say "never built or run on Linux/Windows; packager tests use fake binaries on macOS".
 - [ ] **Step 2**: README table and sections, CI change, docs, commit: "Platform status, Linux/Windows packaging notes and Windows CI".
 
-### Task 2.3 (orchestrator): iPad build, install, intro on the device
+### Task 2.3 (orchestrator): iPad build, install, intro on the device (done 2026-09-14: movies play with sound on the device, see docs/analysis.md)
 
 Not a Codex task. From the orchestrator's shell: `.venv/bin/python tools/build.py --target ios --team BDFW2Z27HA --device 15A75531-8976-580D-AF09-5DAA939FDF32 --no-install`, `xcrun devicectl device install app --device ... build/ios/Release/MajestyRecomp.app` (path from the build output), launch with `--console` for 60 s; expect `bink: open` lines and movie frames in pulled dumps. Record in `docs/analysis.md` and the README's iPad row.
 
-### Task 2.4 (orchestrator): land the kit on main, re-pin, push
+### Task 2.4 (orchestrator): land the kit on main, re-pin, push (done 2026-09-14: kit main 4574a35, both game repositories re-pinned and pushed)
 
 `git -c protocol.file.allow=always pull --ff-only /Users/sattam.thakur/Documents/Tests/majesty-recomp/kit majesty` in `~/Documents/Tests/recomp-kit`, `git push origin main`; re-pin the submodule to `local/main`; push the game repository. Then re-pin `pharaoh-recomp` to the same kit main and check its `dx_tests` and boot smoke still pass.
