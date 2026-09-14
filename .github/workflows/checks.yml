@@ -14,36 +14,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The kit is a private submodule for now; checkout needs KIT_TOKEN (a
-  # personal access token with read access to veritr1x/recomp-kit) in this
-  # repository's secrets. Until it exists this workflow fails at checkout,
-  # which is the expected state.
   configure:
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: macos-15
+            python: .venv/bin/python
           - os: ubuntu-24.04
+            python: .venv/bin/python
+          - os: windows-2025
+            python: .venv/Scripts/python
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
-          token: ${{ secrets.KIT_TOKEN }}
+      - name: Enter the Visual Studio developer environment (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Contributor tools
         run: |
           python3 -m venv .venv
-          .venv/bin/python -m pip install -r kit/requirements-dev.txt
+          ${{ matrix.python }} -m pip install -r kit/requirements-dev.txt
       - name: Portable tests (the kit's suites plus this game's config)
         run: |
-          .venv/bin/python tools/test.py
-          .venv/bin/python -m pytest -q tests
+          ${{ matrix.python }} tools/test.py
+          ${{ matrix.python }} -m pytest -q tests
       - name: Install clang and lld (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq clang lld
       - name: Link-only configure of this game through the kit
-        run: .venv/bin/python tools/build.py --stub
+        run: ${{ matrix.python }} tools/build.py --stub
       - name: iOS stub compile (no signing)
         if: runner.os == 'macOS'
-        run: .venv/bin/python tools/build.py --stub --target ios
+        run: ${{ matrix.python }} tools/build.py --stub --target ios

@@ -157,6 +157,54 @@ write it.
 
 Recorded runs of the pipeline against this executable, newest first.
 
+#### 2026-09-14: desktop packaging notes and Windows CI (Task 2.2)
+
+Started from clean game `main` at `b505e93` and clean kit branch `majesty`
+at `4574a35c3702a9750516c545a39c136cb1808432`. This task changes only the
+README, workflow, this analysis record and changelog; the kit pin stays put.
+Step 1 ran on macOS, before the documentation and CI edits:
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `.venv/bin/python -m pytest -q kit/tools/tests/test_package_desktop.py` | 0 | 17 passed in 0.08 s |
+| `.venv/bin/python tools/test.py` | 0 | 123 passed, 3 skipped in 6.74 s |
+
+The packager tests use fake binaries and shared libraries, checking Linux
+and Windows layouts, FFmpeg staging, notices, Linux tarball contents,
+player-file preservation and automatic packaging after successful app
+builds. The portable suite includes these same tests; these counts are not
+independent native-build results. Neither the native build/package nor the
+game has ever been built or run on Linux or Windows here, including
+hardware playback. No native package was produced by this task.
+
+Checked the documented output paths and `RECOMP_EXE` behavior against
+`kit/tools/build.py`, `kit/tools/package_desktop.py` and the host's game-path
+selection. Successful non-stub desktop app builds call
+`package_desktop.stage` and stage `build/package/MajestyRecomp/`; Linux
+also gets `build/package/MajestyRecomp-linux-<arch>.tar.gz`. The executable
+path selects its parent as the game data root. Packaging copies host
+resources and, when video is enabled, FFmpeg libraries and notice, without
+copying the private game installation. The Windows notes use listings
+exported on macOS; no Windows listing-export verification was performed.
+
+The workflow mirrors `pharaoh-recomp/.github/workflows/checks.yml`'s
+`windows-2025` entry, per-platform venv Python, Bash shell and Visual Studio
+developer environment. Recursive checkout uses the public kit with no
+`KIT_TOKEN` or private-submodule comment. Portable suites and the game
+config tests run before the stub build on all three desktop runners. The
+macOS-only iOS stub CI step is retained. No remote CI run was triggered.
+A Python full-file comparison against the sibling, removing only its
+private-kit comment and checkout token, passed (exit 0).
+
+The README table separates the earlier macOS/mobile evidence from these
+tooling checks. Per the orchestrator's update, the iPad app builds with the
+new kit, but the iPad was unreachable at build time: installation and
+device movie playback remain the orchestrator's check. This task did not
+build iOS or touch `build/ios`. Android installation and device play remain
+unverified after Task 2.1's successful APK builds. Linux/Windows native
+builds, library loading, Vulkan validation, movie/audio playback, gameplay
+and Save/Load remain unverified. No push was performed.
+
 #### 2026-09-14: Android APK with FFmpeg (Task 2.1)
 
 Started from game `main` at `90027ba` and clean kit branch `majesty` at

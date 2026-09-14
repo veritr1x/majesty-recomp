@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add a platform status table and Linux/Windows build, package and
+  `RECOMP_EXE` launch notes. Both desktop ports remain never built or run
+  on their target OS; packager tests use fake binaries on macOS. Record the
+  iPad build with the new kit and device installation/playback pending the
+  orchestrator. Add `windows-2025` portable tests and stub build CI, and
+  remove the checkout token requirement now that the kit is public.
 - Android stub and translated APK builds verified with FFmpeg at kit
   `4574a35`. Document the Android toolchain, build and data-push commands,
   external game/profile paths and `switches.txt`. Installation and gameplay

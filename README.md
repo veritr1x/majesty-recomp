@@ -14,8 +14,8 @@ The runtime, translator, hosts and mod foundation are
 submodule `kit/`. This repository holds what is Majesty's: `game.toml` and
 `globals.toml` (identity, addresses, curated symbols), `tests/` (the
 config's contract with the kit), `tools/analyze.py` (this game's listing
-export) and docs. The kit is private at the moment, so the submodule needs
-access to it.
+export) and docs. The kit is public; recursive checkout needs no separate
+access token.
 
 **You need your own copy of the game.** Game executables, artwork, sound,
 music, quests, generated game code and replacement packs are prepared
@@ -49,6 +49,23 @@ The game's intermittent freestyle-start `GplException` remains open; the
 9-second settle passed this regression run but is not a proven fix. Movie
 playback on iPad at this kit pin remains the orchestrator's check.
 
+## Platform status
+
+Status at kit `4574a35`. Build commands assume the private game installation
+and Ghidra listings are prepared as described below. macOS and mobile
+results come from the recorded runs in [docs/analysis.md](docs/analysis.md)
+and the orchestrator's iPad build update; Task 2.2 ran only the packager and
+portable tests on macOS. Linux and Windows target current releases
+supported by SDL3.
+
+| Platform | Verified status | Build command | Remaining checks |
+| --- | --- | --- | --- |
+| macOS 14+ | Intro frames and Return skips verified in the app and smoke host; headless capture has non-silent movie audio. Fresh-profile smoke reaches a running Beginner Random quest. Music, saves and settings have earlier verification. | `.venv/bin/python tools/build.py --regenerate --jobs 8` | Full unskipped movies, gap-free audio and sustained performance remain unmeasured. Intermittent freestyle-start `GplException` and right/bottom edge scrolling remain open. |
+| iPadOS 17+ | The app builds with the new kit; device install is pending the orchestrator's check because the iPad was unreachable at build time. Earlier-kit touch play is recorded separately. | `.venv/bin/python tools/build.py --target ios --team <TEAM_ID> --no-install` | Orchestrator: install, boot, movie playback/audio and skips on the device, then gameplay regression. Device playback at this pin is unverified. |
+| Linux | Never built or run on Linux; packager tests use fake binaries on macOS. | `.venv/bin/python tools/build.py --regenerate --jobs 8` | Native build/package, shared-library loading, Vulkan window/driver validation, movies/audio, quest input, Save/Load and exit on hardware. |
+| Windows | Never built or run on Windows; packager tests use fake binaries on macOS. | `.venv\Scripts\python tools\build.py --regenerate --jobs 8` | Native build/package, Vulkan validation, guest path separators, movies/audio, quest input, Save/Load and exit on hardware. Windows CI has not run for this change. |
+| Android 10+ (Vulkan 1.1) | Stub and translated arm64-v8a APKs build with FFmpeg; no device was attached. | `.venv/bin/python tools/build.py --target android` | Installation, boot, movies/audio, touch play, Save/Load, background/resume and Exit Game on a tablet. |
+
 ## Build on macOS
 
 The steps are the kit's. Use the submodule commit pinned by this repository;
@@ -76,6 +93,93 @@ a curated annotation set, and none exists for this executable, so this
 script runs Ghidra's analyzers instead. Outputs (the translation, the apps,
 the logs) live under ignored `build/`; the game lives in ignored
 `original/` and the Ghidra listings in ignored `analysis/`.
+
+## Build on Linux
+
+**Never built or run on Linux, including hardware playback.** The packager
+tests use fake binaries on macOS. CI covers portable tests and a stub build
+without game code; it does not establish native packaging or gameplay.
+
+Start in a recursive checkout with your supported installation copied to
+`original/gog`. Install Python with venv support, Ghidra 12.1.3 and a
+compatible JDK as described in [CONTRIBUTING.md](CONTRIBUTING.md). The
+following Ubuntu dependencies match the kit's native CI; a Vulkan-capable
+driver is also required for the app:
+
+```sh
+sudo apt-get update -qq
+sudo apt-get install -y -qq clang lld build-essential pkg-config libasound2-dev \
+  libpulse-dev libaudio-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
+  libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+  libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+  libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
+  libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev \
+  mesa-vulkan-drivers glslc
+python3 -m venv .venv
+.venv/bin/python -m pip install -r kit/requirements-dev.txt
+.venv/bin/python tools/setup.py --install original/gog --link-only
+.venv/bin/python tools/analyze.py --ghidra-home /path/to/ghidra_12.1.3_PUBLIC
+.venv/bin/python tools/build.py --regenerate --jobs 8
+RECOMP_EXE="$PWD/original/gog/MajestyHD - Old.exe" \
+  build/package/MajestyRecomp/MajestyRecomp
+```
+
+After a successful app build, `tools/build.py` calls the kit's
+`package_desktop.py` automatically. It writes `build/package/MajestyRecomp/`
+and `build/package/MajestyRecomp-linux-<arch>.tar.gz` (`x86_64` or
+`aarch64`). `RECOMP_EXE` names the original **executable**, not a directory;
+its parent is the game data root. Keep `MajestyHD - Old.exe` with all its
+data directories. The package includes no game files.
+
+Linux defaults `RECOMP_VIDEO` ON in a fresh CMake cache; the first build
+fetches and builds FFmpeg from source. The packager puts
+`libavformat.so.61`, `libavcodec.so.61` and `libavutil.so.59` beside the app
+and includes `resources/ffmpeg-NOTICE.md` in the folder and tarball. Keep
+the shared libraries and `resources/` with the app. Native compilation,
+library loading after moving the package away from the build tree, Vulkan
+window/driver validation, movies and audio, quest input, Save/Load and exit
+still need a Linux run recorded in [docs/analysis.md](docs/analysis.md).
+
+## Build on Windows
+
+**Never built or run on Windows, including hardware playback.** The packager
+tests use fake binaries on macOS. The new `windows-2025` CI entry runs
+portable tests and a stub build; it has not run for this change.
+
+Start in a recursive checkout with the supported installation copied to
+`original\gog`. Prepare the Ghidra listings with the macOS steps above and
+copy the private `analysis/decompiled/MajestyHD - Old.exe/` directory to the
+same ignored path in the Windows checkout. The build below regenerates C
+from those listings. Install Python and LLVM's clang/lld, then use a Visual
+Studio developer PowerShell with the Windows SDK and clang/lld on `PATH`:
+
+```powershell
+py -3 -m venv .venv
+.venv\Scripts\python -m pip install -r kit\requirements-dev.txt
+.venv\Scripts\python tools\setup.py --install original\gog --link-only
+.venv\Scripts\python tools\build.py --regenerate --jobs 8
+$env:RECOMP_EXE = (Resolve-Path 'original\gog\MajestyHD - Old.exe').Path
+.\build\package\MajestyRecomp\MajestyRecomp.exe
+```
+
+After a successful app build, the kit's `package_desktop.py`, called by
+`tools/build.py`, writes `build\package\MajestyRecomp\`. Its `README.txt`
+also shows how to launch from that folder with `RECOMP_EXE` set to the full
+path of the original `MajestyHD - Old.exe`. Its parent supplies the game
+data; the package contains no game files. Keep `resources\` beside the app.
+
+The Visual Studio/MSVC-ABI compiler path keeps `RECOMP_VIDEO` OFF, so the
+commands above do not enable movie decoding. The kit's video path requires
+MSYS2 `bash` and GNU `make` on `PATH` plus a matching MinGW-compatible
+compiler for the whole build. When enabled, packaging also stages
+`avformat-61.dll`, `avcodec-61.dll`, `avutil-59.dll` beside the app and
+`resources/ffmpeg-NOTICE.md`; keep these files together. Windows video
+compilation, DLL loading and playback remain unverified.
+
+Native packaging, Vulkan validation, quest input, audio, Save/Load and exit
+still need hardware checks. Include game-data and save paths containing
+backslashes and spaces when checking guest path separators, and record the
+GPU/driver and results in [docs/analysis.md](docs/analysis.md).
 
 ## Play on an iPad
 
