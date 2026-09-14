@@ -1,0 +1,18 @@
+# Watch the intro, then skip the remaining movies to the main menu.
+# The first movie fades in from black; judge intro-6s and intro-12s.
+wait 2000
+dump intro-2s
+wait 4000
+dump intro-6s
+wait 6000
+dump intro-12s
+key RETURN down
+wait 100
+key RETURN up
+wait 3000
+dump after-skip
+key RETURN down
+wait 100
+key RETURN up
+wait 5000
+dump main-menu

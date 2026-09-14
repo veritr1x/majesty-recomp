@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Intro movies play through FFmpeg on macOS, with non-silent audio verified
+  in the headless host. Re-pin the kit to `majesty` `4574a35` for Bink
+  file-handle input, dynamic imports, frame-driven audio and safe teardown.
+  Add `smoke/intro.script`; the freestyle smoke skips both movies with
+  Return and settles for 9 seconds before Beginner Random. Its fresh-profile
+  regression passed all 14 steps; the intermittent game exception remains
+  open. Document the private Bink container test and macOS movie/menu dumps.
 - Re-pin the kit to `majesty` `4ab4604`.
 - The game plays on the iPad by touch and with a Bluetooth mouse: taps take
   the menus into a quest and select buildings there, a finger held against

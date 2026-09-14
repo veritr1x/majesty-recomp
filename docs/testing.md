@@ -13,6 +13,17 @@ skip prerequisites. Every command is a wrapper around the kit's
 | `tools/test.py --compile-only` | Every native test binary this platform has compiles | No |
 | `tools/test.py --native` | Runtime, adapters, offscreen Metal and UI tests; the `game`-labelled suites load the image | Yes for the `game` label |
 | `tools/test.py --mods`, `--gameplay`, `--integration` | Game-backed mod, gameplay and integration runs | Yes, plus a translated archive, which this game does not have yet |
+| `RECOMP_TEST_BINK_CONTAINER="$PWD/original/gog/Data/cinedata2.dat,124" .venv/bin/ctest --test-dir kit/build/cmake/macos -R dx_tests --output-on-failure` | Bink file-handle decoding, dynamic entry points, rectangles, pause, audio and shutdown using the kit's stub game | Yes: the private container at byte offset 124 (320x240, 180 frames) |
+
+Before the Bink row, compile the native suites against the kit's stub game
+from this repository's root (FFmpeg is enabled by default on macOS):
+
+```sh
+.venv/bin/python kit/tools/test.py --game-dir "$PWD/kit/games/stub" --compile-only
+```
+
+Without `RECOMP_TEST_BINK_CONTAINER`, the private container checks print
+their skip messages. The game configuration is not the native test fixture.
 
 Native suites are CTest entries with labels: `nogame` runs everywhere and in
 the kit's CI, `game` needs your installation, `gpu` needs a Metal device,

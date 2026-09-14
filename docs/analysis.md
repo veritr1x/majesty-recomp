@@ -111,12 +111,10 @@ resolution is a `MajXPrefs` value, not a patch.
   exists.
 - **Bink video** for the intro and cinematics (`Data/cinedata*.dat`,
   `DataMX/mx_cinedata*.dat`) is loaded at run time from `BINKW32.DLL` by
-  name; the kit reports modules it has no shims for as missing, and the
-  game's own `Unable to find BINKW32.DLL` path and the `-nointro` switch
-  handle that until a decoder exists. The kit's `GetCommandLineA` returns
-  only the executable path, so switches the port wants (`-nointro`,
-  `-nocdaudio`) need either a kit way to pass them or the `IntroVideo`
-  setting in `MajXPrefs`.
+  name. Kit `4574a35` serves the dynamic imports and decodes the movie from
+  the archive reader's positioned file handle through FFmpeg. The game's
+  `Unable to find BINKW32.DLL` fallback is no longer taken. Movie frames,
+  Return skips and non-silent headless audio are recorded in Task 1.3 below.
 - **Time** is `timeGetTime` with `timeBeginPeriod`, plus `GetTickCount`
   and `QueryPerformanceCounter`; the kit's frame-clock hook identifies
   draw-loop waits by `GetTickCount` return addresses, and whether this
@@ -158,6 +156,166 @@ write it.
 ### Run log
 
 Recorded runs of the pipeline against this executable, newest first.
+
+#### 2026-09-14: intro playback and quest regression at 4574a35 (Task 1.3)
+
+Continued at Step 3 after Tasks 1.1, 1.2, 1.4 and 1.5. The clean kit
+checkout was already on `majesty` at
+`4574a35c3702a9750516c545a39c136cb1808432` (`git -C kit rev-parse HEAD`,
+exit 0); `git add kit` stages the game pin's move from `d36f25a` to this
+commit. No kit source changed here. `git -C kit rev-list --count
+31f0f24..4574a35` returned 34: the earlier 30 commits plus the four Bink
+commits. The executable, config addresses and player profiles are unchanged.
+
+Builds from the game root, each redirected to the named file under
+`build/task-1.3/` with `> <log> 2>&1`:
+
+| Command | Exit | Result / log |
+| --- | --- | --- |
+| `.venv/bin/python tools/build.py --regenerate --jobs 8` | 0 | Regenerated and linked the macOS app; `regenerate.log` |
+| `.venv/bin/python tools/build.py --target smoke --jobs 8` | 0 | Linked `build/recomp/pop_smoke`; `build-smoke.log` |
+| `.venv/bin/python tools/build.py --jobs 8` | 0 | No work to do; `build-app.log` |
+| `cmp build/recomp/gen/x86.h kit/runtime/x86.h` | 0 | Generated runtime header matches the kit |
+| `.venv/bin/python tools/build.py --jobs 8` (Step 4) | 0 | No work to do; `build-app-step4.log` |
+
+Translation emitted 24,178 of 24,179 functions and 26,230 entry points in
+17.7 s (122 chunks). One guessed block, `0053bee0`, was withdrawn because
+its target `0053c004` went nowhere; there were 0 recovery errors, 0
+jump-table entries dispatching nowhere and 0 sites decoding nothing.
+The builds retain keypad C-linkage return-type and linker common-section
+alignment warnings.
+
+**Step 2 evidence, retained rather than rerun.** `build/intro/run.log`
+records 9 of 9 steps, guest exit 0, 20.2 s and 221 presented frames (203
+different from their predecessor). To repeat it, use the smoke command below
+with `intro` in place of `freestyle` and `smoke/intro.script` as the script,
+choosing unused output/profile paths for any new run.
+The first movie is **640x480, 180 frames at 15 fps, from `cinedata3.dat`**,
+not the plan's 320x240 `cinedata2.dat` test fixture. The second open is
+640x480, 2,204 frames at 15 fps from the same archive. Return at 12 s and
+15.1 s skips the two movies; clicks were not needed.
+
+Re-read the existing PPMs with Pillow and counted RGB colours: `intro-2s`
+has 1 (black during the fade-in), `intro-6s` has 4,183, `intro-12s` has
+1,574, `after-skip` has 475 and `main-menu` has 3,861. All five pixel hashes
+differ. Visually re-inspected the 6 s logo animation, 12 s completed logo
+and 800x600 main menu, with its buttons and Version 1.5.1.2. The initial
+black frame is not a playback failure.
+
+The completed Task 1.5 run under `build/task-1.5-headless/` is Step 2's
+audio and clean-exit evidence (host exit 0 supplied by that task; guest exit
+0 and no teardown exception in its retained log). The following command
+reproduces its recorded caps, paths and dump cadence; it was not rerun in
+this continuation, and another run needs unused output/profile paths:
+
+```sh
+RECOMP_PROFILE_DIR="$PWD/build/task-1.5-headless/profile" \
+RECOMP_MAX_FRAMES=100000 RECOMP_MAX_SECONDS=20 RECOMP_FRAME_EVERY=60 \
+RECOMP_FRAMES="$PWD/build/task-1.5-headless/frames" \
+RECOMP_HOST_AUDIO_CAPTURE="$PWD/build/task-1.5-headless/movie.wav" \
+RECOMP_DDRAW_MODES=640x480x8,640x480x16,800x600x16 \
+build/recomp/pop_headless > build/task-1.5-headless/run.log 2>&1
+```
+
+Re-measured its WAV with Python's `wave` and `array` modules: 48,000 Hz,
+stereo PCM16, 880,907 frames (18.352229 s), 1,598,500 nonzero samples,
+peak 27,506/32,768 (0.8394). These match `measurements.json`. The log
+reports 16.7 s not silent, 277 presented frames, five saved frames, no
+undeliverable calls and zero audio channels left allocated to players.
+It also reports one 1.415 s silent gap and a queue-depth accounting warning;
+this proves non-silent movie audio, not gap-free playback. The earlier
+`build/intro/headless/` exit-time mutex abort is superseded by Task 1.5.
+
+**Step 3, fresh quest smoke.** Preserved the pre-existing failed
+`build/freestyle/` as `build/freestyle-before-task-1.3/` and created a new
+dump directory. No `RECOMP_*` switches were inherited. Ran once:
+
+```sh
+RECOMP_PROFILE_DIR="$PWD/build/freestyle/profile" \
+RECOMP_SCRIPT="$PWD/smoke/freestyle-beginner.script" \
+RECOMP_HOST_DUMP_DIR="$PWD/build/freestyle/dumps" \
+RECOMP_DDRAW_MODES=640x480x8,640x480x16,800x600x16 \
+RECOMP_SMOKE_DRAWABLE=800x600 \
+build/recomp/pop_smoke > build/freestyle/run.log 2>&1
+```
+
+Host exit 0, guest exit 0, all 14 steps in 68.4 s; 2,833 presented frames,
+472 different from their predecessor, 800x600 at 16 bpp, no undeliverable
+calls and no `GplException`. No retry was needed. The orchestrator's prior
+measurement was three throws in three runs with a 4.5 s settle after
+movies, then 14 of 14 steps with 9 s in `build/freestyle-varB/`. The script
+retains that 9 s settle and both Return skips; it does not fix the game's
+intermittent exception.
+
+Converted each dump with the following command (substitute `quest-8s`,
+`quest-20s`, then `quest-click` for `<name>`); all three exited 0 and
+reported 800x600. Looked at all three PNGs:
+
+```sh
+.venv/bin/python kit/tools/recomp/ppm_to_png.py \
+  build/freestyle/dumps/smoke_<name>_present.ppm \
+  build/freestyle/dumps/smoke_<name>_present.png
+```
+
+All show "Random (Beginner)", 20,000 gold, a selected palace and the
+sidebar. The day-progress indicator and characters/flags change; the day
+count remains 0. Unlike the Task 0.1 record's level-2 palace, 700 HP, nearby
+guild and Temple to Dauros, this run shows a level-1 palace, 550 HP and no
+such nearby buildings in the captured view. `quest-click` shows the
+"Palace (550 of 550 hp)" tooltip and a Tax Collector. No misplaced or
+clipped UI is apparent; the quest state differs, so this is not a pixel
+equivalence claim. The known mod-loader warning, unavailable Bink audio
+streaming in the smoke host and DirectShow refill restarts remain.
+
+**Step 4, macOS app.** After the second app build above, created
+`build/app-intro/dumps/` and launched with another fresh profile:
+
+```sh
+RECOMP_PROFILE_DIR="$PWD/build/app-intro/profile" \
+RECOMP_HOST_DUMP_DIR="$PWD/build/app-intro/dumps" RECOMP_HOST_DUMP_EVERY=60 \
+perl -e 'alarm 25; exec @ARGV' \
+  build/MajestyRecomp.app/Contents/MacOS/MajestyRecomp \
+  > build/app-intro/run.log 2>&1
+```
+
+The 25 s alarm ended the process with **exit 142 (SIGALRM)**, as prescribed;
+this is not a clean guest-exit test. Used the native app UI to observe the
+logo and press Return once; the next observation was the main menu, so a
+second press was unnecessary. Both Bink opens appear in the log. A skip
+is needed within this time cap: the second movie alone lasts 2,204/15 =
+146.93 s. Converted `present_00060`, `present_00120`, `present_00180` and
+`present_00240` with the command below; all four exited 0. Looked at all
+four PNGs: three different 640x480 logo frames, then the complete 800x600
+main menu matching Step 2's layout and version label.
+
+```sh
+.venv/bin/python kit/tools/recomp/ppm_to_png.py \
+  build/app-intro/dumps/present_<number>.ppm \
+  build/app-intro/dumps/present_<number>.png
+```
+
+The app starts a 48 kHz stereo audio device and movie audio streams.
+Its log also records the previously seen drawable-acknowledgement timeout
+and command-completion fallback; frames still reached the menu. No
+sustained performance or complete unskipped movie sequence was measured.
+
+**Step 5 checks.** Logs are under `build/task-1.3/`; every command below
+was run from the game root. Native tests used `kit/games/stub`, confirmed
+in the CMake cache along with `RECOMP_VIDEO=ON`, never this translation.
+
+| Command | Exit | Result / log |
+| --- | --- | --- |
+| `.venv/bin/python -m pytest -q tests` | 0 | 4 passed in 0.01 s; `game-tests.log` |
+| `.venv/bin/python tools/test.py` | 0 | 123 passed, 3 skipped in 6.89 s; `portable-tests.log` |
+| `.venv/bin/python tools/build.py --stub` | 0 | Linked `build/stub/MajestyRecomp.app`; `build-stub.log` |
+| `.venv/bin/python kit/tools/test.py --game-dir /Users/sattam.thakur/Documents/Tests/majesty-recomp/kit/games/stub --compile-only` | 0 | Native binaries up to date; `native-compile.log` |
+| `RECOMP_TEST_BINK_CONTAINER="$PWD/original/gog/Data/cinedata2.dat,124" .venv/bin/ctest --test-dir kit/build/cmake/macos -R dx_tests --output-on-failure` | 0 | 1/1 passed, 0 failed, 0.13 s; `dx-container.log` |
+| `.venv/bin/ctest --test-dir kit/build/cmake/macos -R "dx_tests\|host_tests" --output-on-failure` | 0 | 2/2 passed, 0 failed, 0.81 s; private Bink fixture skip messages present without the variable; `dx-host.log` |
+| `git diff --check` and `git diff --cached --check` | 0 | No whitespace errors in the task changes |
+
+All game inputs, profiles, captures, generated files and run logs remain
+under ignored directories. No iOS build or device intro check was run;
+that verification belongs to the orchestrator. No push was performed.
 
 #### 2026-09-14: re-pin the kit to main 4ab4604 on majesty (Task 0.1)
 

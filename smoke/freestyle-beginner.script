@@ -1,15 +1,25 @@
-# From the main menu to a running Beginner Random freestyle quest, at 800x600.
+# Skip the intro, then reach a running Beginner Random freestyle quest at 800x600.
 # Coordinates are guest pixels. Run with the kit's smoke host:
 #
 #   RECOMP_SCRIPT=$PWD/smoke/freestyle-beginner.script RECOMP_HOST_DUMP_DIR=... \
 #   RECOMP_DDRAW_MODES=640x480x8,640x480x16,800x600x16 RECOMP_SMOKE_DRAWABLE=800x600 \
 #   build/recomp/pop_smoke
 #
-# The 4.5 s settle before "Beginner Random" matters: a click 2-3 s after the
+# The settle before "Beginner Random" matters: a click 2-3 s after the
 # Freestyle dialog opens starts a generation that throws the game's own
 # GplException ("bad conversion to list&", a GplNull where a list was expected),
-# which the runtime cannot unwind. Players of the original report random
-# freestyle crashes too; see docs/analysis.md.
+# which the runtime cannot unwind. With the two intro movies played and
+# skipped first, 4.5 s threw in three runs of three and 9 s passed, so 9 s.
+# Players of the original report random freestyle crashes too; see docs/analysis.md.
+# Return skips both movies; these timings match smoke/intro.script.
+wait 12000
+key RETURN down
+wait 100
+key RETURN up
+wait 3000
+key RETURN down
+wait 100
+key RETURN up
 wait 8000
 click left 92 548
 wait 4000
@@ -20,7 +30,7 @@ wait 6000
 click left 398 404
 wait 3000
 click left 398 580
-wait 4500
+wait 9000
 click left 398 236
 wait 8000
 dump quest-8s

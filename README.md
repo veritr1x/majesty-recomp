@@ -33,26 +33,26 @@ the kit's supported envelope today, so that executable is not translated and
 is excluded from bundles. Both play the same data. The reasoning and the
 measurements are in [docs/analysis.md](docs/analysis.md).
 
-## Status: a freestyle quest runs, with music, saves and settings; it plays on the iPad by touch
+## Status: intro movies play on macOS; a freestyle quest runs
 
-The pinned executable translates, compiles and runs: the kit's macOS app
-boots to the main menu, and the kit's smoke host drives it through the name
-dialog and the quest map into a running Beginner Random freestyle quest at
-800x600, with effects and the narrator's voice playing. That took kit work
-on the `majesty-translator` branch the submodule pins, recorded in the run
-log at the end of [docs/analysis.md](docs/analysis.md).
+The pinned executable translates, compiles and runs. Intro movies play
+through FFmpeg in the macOS app and smoke host; the headless capture
+confirms non-silent movie audio. `smoke/intro.script` captures the movies
+and skips to the main menu with Return. `smoke/freestyle-beginner.script`
+skips both movies, then reaches a running Beginner Random quest at 800x600
+with a 9-second settle before starting it. The kit is pinned to `majesty`
+`4574a35`; commands, captures and results are in
+[docs/analysis.md](docs/analysis.md).
 
-Open items: MP3 music (the game streams it through DirectShow, which the
-kit does not serve); a `GplException` the game throws on some freestyle
-starts, which the kit cannot unwind and the original is reported to crash
-on as well; saving. The intro is skipped because the Bink
-video library is not served, which is the game's own `-nointro` behaviour.
+Music, saves, settings and iPad touch play were verified in earlier runs.
+The game's intermittent freestyle-start `GplException` remains open; the
+9-second settle passed this regression run but is not a proven fix. Movie
+playback on iPad at this kit pin remains the orchestrator's check.
 
 ## Build on macOS
 
-The steps are the kit's. The submodule must be on the `majesty-translator`
-branch's commit (it is, when cloned with `--recurse-submodules`); the kit's
-`main` does not translate this executable yet.
+The steps are the kit's. Use the submodule commit pinned by this repository;
+cloning with `--recurse-submodules` checks out that commit automatically.
 
 ```sh
 git clone --recurse-submodules https://github.com/veritr1x/majesty-recomp.git
