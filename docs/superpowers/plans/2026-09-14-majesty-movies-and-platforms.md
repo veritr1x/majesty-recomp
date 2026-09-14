@@ -122,6 +122,17 @@ From `analysis/decompiled/MajestyHD.exe/functions/` (the listing directory name 
 - [ ] **Step 1: Write the failing test** `test_bink_audio_without_service`, sharing the container fixture (skips without `RECOMP_TEST_BINK_CONTAINER`): open from the handle, call `BinkDoFrame` and `BinkNextFrame` three times with `BinkWait` in between and never `BinkService`; CHECK that the player's channel is a host audio stream with queued bytes (expose what the existing Task 10.2-era test used to check `host_audio_stream`/`host_audio_queued_bytes`, or read them through the same headers `dx_tests.cpp` already includes). Register it.
 - [ ] **Step 2: Run** (fails: no channel). **Step 3: Implement.** **Step 4: Verify** `dx_tests` with and without the container variable, `host_tests`, format, literals, staged repo check. **Step 5: Commit** the kit on `majesty`: "bink: feed audio from the frame calls, not only BinkService".
 
+### Task 1.5: A movie still open at process exit does not abort the host
+
+**Measured (Task 1.3, `build/intro/headless/run.log`):** the headless host with a 20 s cap ended while the second movie was still open; after `guest process exited with code 0` the host died with `libc++abi: terminating due to uncaught exception of type std::system_error: mutex lock failed: Invalid argument` (exit 6). The open `BinkPlayer` objects live in a static map in `kit/dx/bink.cpp`; their destructors run at static destruction and call `host_audio_stop` / `dx_free_audio_channel` on host audio state that is already torn down. The smoke and headless hosts exited 0 before movies played, so this is the player's teardown order.
+
+**Files:**
+- Modify: `kit/dx/bink.cpp` (a `bink_shutdown()` that closes every open player while the host is still alive: free the FFmpeg state, stop the audio channel, forget the records), `kit/dx/dx.h` or wherever `bink_reset` is declared, and the host teardown sequence that already stops audio (find where `host_audio_shutdown` or the equivalent is called in `kit/host/` and call `bink_shutdown()` before it; grep `bink_reset` for the existing wiring pattern), `kit/CHANGELOG.md`
+- Test: `kit/dx/tests/dx_tests.cpp`
+
+- [ ] **Step 1: Write the failing test** `test_bink_shutdown_with_open_player` (container fixture; skips without it): open from the handle, decode one frame so audio starts, do NOT close, call `bink_shutdown()`; CHECK the record no longer resolves (a `BinkDoFrame` on it is a no-op returning 0 and `BinkClose` on it does not crash) and that a subsequent open still works. Register it.
+- [ ] **Step 2: Run** (fails to link or fails). **Step 3: Implement** and wire the call into every host's teardown (smoke, headless, SDL app share a path; find it). **Step 4: Verify** the suites, format, literals, staged repo check, and re-run the headless intro capture from Task 1.3 Step 2 with the 20 s cap: exit 0 after the guest exit. **Step 5: Commit** the kit on `majesty`: "bink: close open players before host audio is torn down".
+
 ## Phase 2: every platform builds
 
 ### Task 2.1: Android APK
