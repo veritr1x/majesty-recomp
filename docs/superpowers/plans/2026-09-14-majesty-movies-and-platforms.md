@@ -67,7 +67,7 @@ From `analysis/decompiled/MajestyHD.exe/functions/` (the listing directory name 
 - Modify: `kit/runtime/kernel32.cpp`, `kit/runtime/win32.h` (a small query: given a guest HANDLE that is an open file, return its host path and current offset)
 - Modify: `kit/dx/bink.cpp` (FFmpeg custom I/O over a window of a host file; `BinkOpen` flag handling)
 - Test: `kit/dx/tests/dx_tests.cpp`
-- Modify: `kit/CHANGELOG.md`, `kit/docs/` where Bink is documented (grep for `BinkOpen`)
+- Modify: `kit/CHANGELOG.md` (no kit document mentions Bink today; the changelog entry and the source comments are the record, and if `kit/README.md` lists the served DLLs, add the handle route in one line there)
 
 **Interfaces:**
 - Produces in `win32.h`: `bool win32_file_handle_position(uint32_t handle, std::string *host_path, int64_t *offset);` returning false for anything that is not an open `H_FILE`; `offset` is the handle's current position (`os_fd_seek(fd, 0, OS_SEEK_CUR)`), the guest's position is not moved.
