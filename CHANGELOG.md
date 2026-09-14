@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Re-pin the kit to `majesty` `4ab4604`.
 - The game plays on the iPad by touch and with a Bluetooth mouse: taps take
   the menus into a quest and select buildings there, a finger held against
   the top edge or a mouse pushed against the top scrolls the map, Exit Game

@@ -159,6 +159,77 @@ write it.
 
 Recorded runs of the pipeline against this executable, newest first.
 
+#### 2026-09-14: re-pin the kit to main 4ab4604 on majesty (Task 0.1)
+
+The kit moves from `31f0f24` to `4ab4604` on its new `majesty` branch.
+In `kit/`, these commands each exited 0:
+
+```sh
+git remote add local /Users/sattam.thakur/Documents/Tests/recomp-kit
+git -c protocol.file.allow=always fetch local main
+git checkout -B majesty local/main
+git log --oneline -1
+```
+
+The final command printed `4ab4604 ddraw: releasing the mode-setting object
+restores the desktop`. No kit source or game config change was needed.
+Checks from the game repository, in order:
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `.venv/bin/python -m pytest -q tests` | 0 | 4 passed in 0.01 s; no schema additions needed |
+| `.venv/bin/python tools/test.py` | 0 | 123 passed, 3 skipped in 7.07 s |
+| `.venv/bin/python tools/build.py --stub` | 0 | Linked `build/stub/MajestyRecomp.app` |
+| `.venv/bin/python tools/build.py --regenerate --jobs 8` | 0 | Regenerated the translation and linked `build/MajestyRecomp.app` |
+| `.venv/bin/python tools/build.py --target smoke --jobs 8` | 0 | Linked `build/recomp/pop_smoke` |
+| `.venv/bin/python tools/build.py --jobs 8` | 0 | App up to date; Ninja reported no work to do |
+
+Translation emitted 24,178 of 24,179 functions and 26,230 entry points in
+19.0 s (122 chunks); one guessed block, `0053bee0`, was withdrawn because
+its dispatch target `0053c004` went nowhere. There were 0 recovery errors,
+0 jump-table entries dispatching nowhere and 0 sites decoding nothing.
+The generated `build/recomp/gen/x86.h` was compared byte for byte with
+`kit/runtime/x86.h` and matched. Builds succeeded with warnings: FFmpeg
+numeric conversions and linker options/search paths, host keypad C-linkage
+return types, and the translated app/smoke linker's common-section alignment
+reduction. These were not changed in this re-pin.
+
+Regression smoke used a fresh, previously nonexistent profile and dump
+directory, with no inherited `RECOMP_*` switches:
+
+```sh
+RECOMP_PROFILE_DIR="$PWD/build/repin/profile" \
+RECOMP_SCRIPT="$PWD/smoke/freestyle-beginner.script" \
+RECOMP_HOST_DUMP_DIR="$PWD/build/repin/dumps" \
+RECOMP_DDRAW_MODES=640x480x8,640x480x16,800x600x16 \
+RECOMP_SMOKE_DRAWABLE=800x600 \
+build/recomp/pop_smoke > build/repin/run.log 2>&1
+```
+
+- Host exit 0, guest exit 0, 10 of 10 script steps in 48.7 s; 2,472
+  presented frames, 272 different from their predecessor, final display
+  800x600 at 16 bpp, no undeliverable calls, all script expectations met.
+- This run did **not** reach the predicted null Bink call. Its log says
+  `LoadLibraryA("binkw32.dll"): no shims for that module, reporting it as missing`.
+  The intro remained skipped; the movie path and the three missing Bink
+  exports were not exercised. Their handling remains Task 1.2's work.
+- Converted each dump with
+  `.venv/bin/python kit/tools/recomp/ppm_to_png.py build/repin/dumps/smoke_<name>_present.ppm build/repin/dumps/smoke_<name>_present.png`,
+  substituting `quest-8s`, `quest-20s`, then `quest-click`; all three commands
+  exited 0 and reported 800x600. All three PNGs were visually inspected.
+  Each shows "Random (Beginner)", the selected level-2 palace, 20,000 gold,
+  the sidebar, nearby guild and Temple to Dauros. Flags and the day-progress
+  indicator change between the first two; the day count remains 0. The
+  click dump shows the palace's 700-of-700-hit-points tooltip. No placement
+  difference or clipping was apparent against the task's expected quest
+  description; this was not a pixel comparison with an old-kit run.
+- The smoke still reports the mod-loader failure and the DirectShow chunk
+  restart limitation already recorded below. This run establishes the
+  scripted quest screen, not movie playback or sustained app performance.
+
+Build logs, the smoke log, dumps and profile remain under ignored
+`build/repin/`. No iOS build was run; that check belongs to the orchestrator.
+
 #### 2026-09-13 (late night): playing on the iPad by hand
 
 Build 3 to build 9 on the iPad Pro (iPadOS 17+, 1210x834 points, 2420x1668
