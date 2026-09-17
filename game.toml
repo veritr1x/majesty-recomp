@@ -63,6 +63,17 @@ mouse_device_right = 0x00725e48
 # identified; the smoke scripts here judge frames, not the camera.
 camera = 0x00725e50
 
+[mods]
+# The mod runtime's Populous integrations hook Populous routines by address;
+# this game has none of them.
+builtin = "none"
+
+[settings]
+# The F10 page's rows. The renderer rows (Rendering, UI scale, Wide view,
+# Resolution, Frame limit, Textures, World filtering) belong to Populous's
+# Direct3D renderer and frame loop and change nothing in this 2D game.
+rows = ["window", "performance_overlay", "keypad"]
+
 [setup]
 # tools/setup.py: what a supported installation must contain. No annotation
 # metadata exists for this executable; tools/analyze.py runs Ghidra's own
