@@ -201,7 +201,7 @@ rebuilt bundle is recognised. It runs fullscreen at the game's 800x600, 16
 bpp, scaled to the display; the kit's pointer gestures apply (a tap places
 the pointer and clicks, a long press right-clicks, a finger held against an
 edge scrolls the map as the mouse on that edge would, two fingers pan with
-the arrow keys, the on-screen keypad stands in for the keyboard). A
+the arrow keys, a two-finger tap right-clicks, the on-screen keypad stands in for the keyboard). A
 Bluetooth mouse works too; pushed against the top of the screen it scrolls
 the map up even though iPadOS keeps the pointer out of the status bar strip.
 Exit Game closes the app. `tools/ios_logs.py --device <id> --game-dir .`
