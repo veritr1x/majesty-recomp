@@ -74,6 +74,14 @@ builtin = "none"
 # Direct3D renderer and frame loop and change nothing in this 2D game.
 rows = ["window", "performance_overlay", "keypad"]
 
+[launcher]
+# The launcher (kit host/launcher/): what it calls the game, the folder names
+# and GOG id it looks for, and the headroom an import leaves free.
+title = "Majesty Gold HD"
+install_names = ["Majesty Gold HD", "Majesty HD", "Majesty"]
+gog_ids = ["1423481910"]
+min_free_mb = 800
+
 [setup]
 # tools/setup.py: what a supported installation must contain. No annotation
 # metadata exists for this executable; tools/analyze.py runs Ghidra's own
