@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Re-pin the kit to `main` `ac86bba`, which teaches main's recovery an MSVC
+  7.1 image. This game is MSVC too, and the pin moves its translation
+  forward: `--regenerate` used to raise on the Delphi SEH classifier ("SEH
+  stub 0064c94c is not a JMP rel32 to code") at both `0b4fa9a` and `dd31356`,
+  and now gets past every frame site to a single remaining literal dispatch
+  target, `fn_0061e4c0`'s `JMP 0xe613ea57`. The app still builds from the
+  generated sources already in `build/recomp/gen/`.
 - Re-pin the kit to `main` `dd31356` (the touch controls: JSON layouts, an
   on-screen pad, physical controllers, phone layouts and a layout editor) and
   give this game its `[controls]` mapping. The sticks and d-pad pan on held

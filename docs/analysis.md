@@ -159,7 +159,8 @@ Recorded runs of the pipeline against this executable, newest first.
 
 #### 2026-09-18: the pad this game's input allows
 
-Kit re-pinned to `main` `dd31356` (the touch-controls merge) and `[controls]`
+Kit re-pinned to `main` `dd31356` (the touch-controls merge) and then to
+`ac86bba` (main's recovery taught an MSVC 7.1 image), with `[controls]`
 written in `game.toml`. What the mapping rests on, all of it from this
 export or an earlier measured session:
 
@@ -193,6 +194,48 @@ and `key:LShift` defaults. The accelerator row is why `default_layout` is
 `RECOMP_CONTROLS_MAPPED` table. No layout of this repository's own ships; the
 built-in pad is already this shape, and the game's 800x600 letterboxing leaves
 98-pixel pillars for the overlay to sit in.
+
+Two things this pin move turned up, neither caused by the controls.
+
+**Translation moves forward at `ac86bba`.** `tools/build.py --regenerate`
+raised `SEH stub 0064c94c is not a JMP rel32 to code` at `0b4fa9a` (this
+repository's previous pin) and again at `dd31356`: this game is MSVC 7.1 as
+well, and its exception handler is an ordinary function, not the Delphi stub
+the classifier demanded, so every frame site aborted the run. `ac86bba` makes
+that classification optional and the run now reaches the dispatch gate,
+failing on one literal target: `fn_0061e4c0` translates
+`0061e9f1 JMP 0xe613ea57`, an address that is no entry point. Three jump
+tables (`00625942`, `0062a092`, `00639dda`) also report entries that are not
+instruction boundaries. That is one item from a regenerating translation,
+against a wall at both earlier pins. The app builds either way from the
+generated sources already under `build/recomp/gen/`.
+
+**`runtime_tests` hangs from `dd31356` onward.** The suite's third entry spins
+instead of finishing: 19 min 36 s elapsed for 16 min 50 s of CPU in the first
+run, state `R`, no result. `sample` puts every one of 3880 samples in the same
+stack:
+
+```
+main (runtime_tests.cpp:6233)            -> test_guest_thunks
+  recomp_unknown_call (cpu.cpp:181)
+    interp_call(X86*, unsigned int) (interp.cpp:655)
+```
+
+`test_guest_thunks` writes `68 44 33 22 11` (`push 0x11223344`) followed by
+`eb fe` (a jump to itself) into the heap and calls
+`recomp_unknown_call` on it, under the comment "A loop must be bounded, and an
+unsuccessful prefix must not leave a PUSH". Nothing bounds it: `runtime/
+interp.cpp`'s `run()` is a `for (;;)` over decoded instructions whose only
+escape is `RET`, a fault or running past the end of the routine, and a
+self-jump reaches none of the three. The file's one limit, `kMaxRoutine`,
+caps how many *bytes* decoding scans for a `RET`, not how many steps
+execution takes. `runtime/interp.cpp` is new at `dd31356` (668 lines, arriving
+with the NFS Most Wanted kit work that the touch-controls branch merged), and
+`ac86bba` does not touch it, so the hang stands at this pin. It is not
+specific to this game: `populous-recomp`, `pharaoh-recomp` and
+`siege-of-avalon-recomp` all sat in their own `runtime_tests` at the same
+time. The sample is kept outside the repository, in the task scratchpad as
+`runtime_tests.sample`.
 
 Not run, and why: `--gameplay` needs a `smoke/native-options.script` this
 repository does not have, and its assertions are Populous-shaped anyway (a
