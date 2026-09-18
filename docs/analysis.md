@@ -188,6 +188,12 @@ and `key:LShift` defaults. The accelerator row is why `default_layout` is
 | `.venv/bin/python tools/test.py` | 0 | 359 passed, 3 skipped in 19.7 s |
 | `.venv/bin/python tools/build.py --stub` | 0 | `build/stub/MajestyRecomp.app` |
 | `.venv/bin/python tools/build.py` | 0 | `build/MajestyRecomp.app`, the translated app |
+| `.venv/bin/ctest --test-dir build/cmake/macos -L "nogame\|game\|gpu\|device" -E runtime_tests` | 0 | 24 of 24 passed in 30 s, including `controls_tests`, `input_touch_tests`, `keypad_tests` and both `game`-labelled suites |
+
+Every command in that table was re-run at `ac86bba`. The native suites are the
+whole `--native` set bar `runtime_tests`, which hangs (below); with it
+excluded the suite is green, so the mapping is exercised by
+`controls_tests` rather than only compiled against.
 
 `build/cmake/macos-stub/generated/game_config.h` carries
 `RECOMP_CONTROLS_DEFAULT_LAYOUT "pad+keys"` and the whole
@@ -227,7 +233,9 @@ main (runtime_tests.cpp:6233)            -> test_guest_thunks
 unsuccessful prefix must not leave a PUSH". Nothing bounds it: `runtime/
 interp.cpp`'s `run()` is a `for (;;)` over decoded instructions whose only
 escape is `RET`, a fault or running past the end of the routine, and a
-self-jump reaches none of the three. The file's one limit, `kMaxRoutine`,
+self-jump reaches none of the three. Sampled twice, at `dd31356` (3880 of
+3880 samples) and at `ac86bba` (3830 of 3830, within 50 s of the test
+starting), with the same stack both times. The file's one limit, `kMaxRoutine`,
 caps how many *bytes* decoding scans for a `RET`, not how many steps
 execution takes. `runtime/interp.cpp` is new at `dd31356` (668 lines, arriving
 with the NFS Most Wanted kit work that the touch-controls branch merged), and
