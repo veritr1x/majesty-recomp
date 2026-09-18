@@ -202,6 +202,15 @@ bpp, scaled to the display; the kit's pointer gestures apply (a tap places
 the pointer and clicks, a long press right-clicks, a finger held against an
 edge scrolls the map as the mouse on that edge would, two fingers pan with
 the arrow keys, a two-finger tap right-clicks, the on-screen keypad stands in for the keyboard). A
+fresh profile also shows the on-screen pad beside those keys: the right stick
+steers the pointer, the left stick and the d-pad hold the arrow keys that pan
+the view, Cross and Circle are the game's two mouse buttons, Square is Return,
+Triangle raises the system keyboard for the player's name, L1 and R1 hold the
+Control and Shift the game polls, Start opens the in-quest Options page and
+Select the kit's own. `[controls]` in `game.toml` carries the whole table with
+the evidence for each entry, and the settings page's Controls rows switch
+layout or open the editor. **Unverified on a device at this pin:** the pad
+itself has not been played by hand here. A
 Bluetooth mouse works too; pushed against the top of the screen it scrolls
 the map up even though iPadOS keeps the pointer out of the status bar strip.
 Exit Game closes the app. `tools/ios_logs.py --device <id> --game-dir .`

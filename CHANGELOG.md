@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Re-pin the kit to `main` `dd31356` (the touch controls: JSON layouts, an
+  on-screen pad, physical controllers, phone layouts and a layout editor) and
+  give this game its `[controls]` mapping. The sticks and d-pad pan on held
+  arrow keys and steer the pointer at 700 points per second; Cross and Circle
+  are the only two mouse buttons the game polls; Square is Return, Triangle
+  the system keyboard, L1/R1 the Control and Shift modifiers it reads, Start
+  Escape and Select the kit's settings page. The triggers and stick clicks
+  stay unmapped because this game handles no mouse wheel and no middle
+  button. Both halves show by default (`pad+keys`), since the UI's letter
+  accelerators live in the `UIData` records rather than in code. No repo
+  layout ships; the built-in pad fits. The pad is unplayed on a device at
+  this pin. `[settings] rows` takes the new `controls` spelling.
 - iPad: the logo, intro and expansion movies play with sound on the device
   with kit `4574a35`; the README's iPadOS row and the run log record the
   console evidence.

@@ -72,7 +72,64 @@ builtin = "none"
 # The F10 page's rows. The renderer rows (Rendering, UI scale, Wide view,
 # Resolution, Frame limit, Textures, World filtering) belong to Populous's
 # Direct3D renderer and frame loop and change nothing in this 2D game.
-rows = ["window", "performance_overlay", "keypad"]
+rows = ["window", "performance_overlay", "controls"]
+
+[controls]
+# What a tablet player gets without a keyboard. Majesty is a mouse game: the
+# pointer does nearly everything, and the only keys measured to do anything
+# here are the arrows, Return, Escape and the two modifiers the game polls.
+#
+# Both halves show by default. The pad carries play; the keys half stays up
+# because the UI's own accelerators are data, not code - FUN_00545db0 formats
+# a control's key as "<letter> + CONTROL/SHIFT/ALT" from the UIData records,
+# so letter hotkeys exist in this game that the listings here cannot
+# enumerate, and only a keyboard reaches them. The picker switches to "pad"
+# alone for an uncluttered map.
+default_layout = "pad+keys"
+pad = "mapped"
+
+[controls.mapped]
+# Camera. Held arrow keys pan the view (measured: 95% of the map moved after
+# 1.5 s of RIGHT, and again after LEFT and UP; docs/analysis.md "how the
+# camera moves, measured"). "arrows" holds the key while the stick is
+# deflected, which is what the game's scroll ramp (FUN_00440500 times it over
+# a second) wants; "scroll" taps the key once per pan step and never ramps.
+left_stick = "arrows"
+dpad = "arrows"
+# The pointer. This is the game's real interface: click to select, click the
+# minimap to jump the camera (97% of the map moved), drag nothing.
+right_stick = "cursor"
+# Points per second at full deflection, below the 900 default. The game polls
+# its mouse buttons once per presented frame and presents at about 16 fps on
+# the iPad (3917 presents in 238 s), so 900 pt/s steps the cursor ~56 points
+# between polls - too coarse for the sidebar's small buttons. 700 pt/s is
+# ~44, and the deflection-squared curve keeps fine aim near centre.
+cursor_speed = 700
+# Buttons. The game polls exactly two mouse buttons, GetKeyState(VK_LBUTTON)
+# and GetKeyState(VK_RBUTTON) (FUN_004f6590), so left and right are all the
+# mouse it has.
+cross = "mouse_left"     # select a building, unit, flag or UI control
+circle = "mouse_right"   # deselect; the measured effect of a right click
+square = "key:Return"    # ACCEPT/OK on every dialog, and skips the movies
+triangle = "action:system_keyboard"  # the player's name and save names
+# The two modifiers the game reads, on the shoulders so they can be held
+# while the other thumb clicks: GetKeyState(0x11) control (FUN_004f6210) and
+# GetKeyState(0x10) shift (FUN_004f61b0). Control is the one documented
+# click modifier: "Hold the control key and click to put the selected item
+# into the mini view."
+l1 = "key:LCtrl"
+r1 = "key:LShift"
+# Nothing to give the triggers or the stick clicks. This game handles no
+# WM_MOUSEWHEEL (no 0x20a in any decompiled function) and never polls a
+# middle button, so the kit's mouse_middle and wheel_up/down defaults are
+# dead here; the wheel-button drag was measured to do nothing.
+l2 = "none"
+r2 = "none"
+l3 = "none"
+r3 = "none"
+start = "key:Escape"       # in-quest Options: Save Game, Load Game, Quit
+select = "action:settings"  # the kit's own page, the F10 the keypad sent
+ps = "action:edit_layout"   # move the pad off the sidebar and minimap
 
 [launcher]
 # The launcher (kit host/launcher/): what it calls the game, the folder names

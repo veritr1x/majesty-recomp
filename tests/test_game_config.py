@@ -63,6 +63,40 @@ class MajestyConfigTests(unittest.TestCase):
         self.assertEqual(len(addresses), len(set(addresses)), "sentinels must not alias one another")
         self.assertEqual(self.cfg["translate"]["volatile_reads"], [])
 
+    def test_controls_are_this_game_s_keys(self):
+        """The pad maps only what this game was measured to read."""
+        controls = self.cfg["controls"]
+        self.assertEqual(controls["default_layout"], "pad+keys")
+        self.assertEqual(controls["pad"], "mapped")
+        mapped = controls["mapped"]
+        # The camera pans on held arrow keys, never on a tapped pan step.
+        self.assertEqual(mapped["left_stick"], "arrows")
+        self.assertEqual(mapped["dpad"], "arrows")
+        self.assertEqual(mapped["right_stick"], "cursor")
+        self.assertLess(mapped["cursor_speed"], 900)
+        # The two mouse buttons the game polls, and the keys it reads.
+        self.assertEqual(mapped["cross"], "mouse_left")
+        self.assertEqual(mapped["circle"], "mouse_right")
+        self.assertEqual(mapped["square"], "key:Return")
+        self.assertEqual(mapped["triangle"], "action:system_keyboard")
+        self.assertEqual(mapped["l1"], "key:LCtrl")
+        self.assertEqual(mapped["r1"], "key:LShift")
+        self.assertEqual(mapped["start"], "key:Escape")
+        self.assertEqual(mapped["select"], "action:settings")
+        self.assertEqual(mapped["ps"], "action:edit_layout")
+        # No middle button and no WM_MOUSEWHEEL in this game: nothing the
+        # kit's mouse_middle and wheel defaults would reach.
+        for entry in ("l2", "r2", "l3", "r3"):
+            self.assertEqual(mapped[entry], "none", entry)
+        for value in mapped.values():
+            self.assertNotIn(value, ("mouse_middle", "wheel_up", "wheel_down"))
+        # The settings page still offers the controls row, new spelling.
+        self.assertIn("controls", self.cfg["settings"]["rows"])
+        self.assertIn('#define RECOMP_CONTROLS_DEFAULT_LAYOUT "pad+keys"', self.header)
+        self.assertIn("cross=mouse_left", self.header)
+        # This repository ships no layout of its own; the built-in pad fits.
+        self.assertFalse(sorted((ROOT / "layouts").glob("*.json")))
+
     def test_bundle_exclusions_and_setup(self):
         for pattern in ("__redist", "SDK", "tmp", "*.dll", "MajestyHD.exe"):
             self.assertIn(pattern, self.cfg["bundle"]["exclude"])
