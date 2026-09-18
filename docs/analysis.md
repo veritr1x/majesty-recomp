@@ -157,6 +157,52 @@ write it.
 
 Recorded runs of the pipeline against this executable, newest first.
 
+#### 2026-09-18: the pad this game's input allows
+
+Kit re-pinned to `main` `dd31356` (the touch-controls merge) and `[controls]`
+written in `game.toml`. What the mapping rests on, all of it from this
+export or an earlier measured session:
+
+| Fact | Where |
+| --- | --- |
+| Two mouse buttons and no more: `GetKeyState(VK_LBUTTON)` then `GetKeyState(VK_RBUTTON)`, once per frame | `FUN_004f6590` |
+| No mouse wheel: no decompiled function mentions `0x20a`, and the window procedure handles no wheel message | the whole `functions/` export; `FUN_00510cc0` |
+| Control and Shift are polled, and Control is the one documented click modifier | `FUN_004f6210` (0x11), `FUN_004f61b0` (0x10), the string at `006c05d4` |
+| Held arrow keys pan the view; a minimap click jumps the camera | "how the camera moves, measured", below |
+| Return takes every dialog and skips the movies; Escape opens the in-quest Options | `smoke/intro.script`, `smoke/freestyle-beginner.script`, "settings and saves live in the profile" |
+| The UI carries letter accelerators that live in the `UIData` records, not in code | `FUN_00545db0` formats `<letter> + CONTROL/SHIFT/ALT` from the records it walks (strings `006c9858`, `006c9860`, `006c986c`) |
+| ~16 presented frames a second on the iPad, and the buttons are polled once per frame | "playing on the iPad by hand", below: 3917 presents in 238 s |
+
+The last row is why `cursor_speed` is 700 rather than the kit's 900: at 16 fps
+900 points per second steps the cursor about 56 points between two polls,
+which overshoots the sidebar's buttons. The wheel and middle-button rows are
+why `l2`, `r2`, `l3` and `r3` are `none` instead of the kit's `mouse_middle`
+and `key:LShift` defaults. The accelerator row is why `default_layout` is
+`pad+keys` and not `pad`: until someone reads the accelerators out of
+`Data/UIData_800_600.dat`, the keys half is the only way to press them.
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `.venv/bin/python -m pytest -q tests` | 0 | 5 passed, the new one pinning every `[controls]` entry |
+| `.venv/bin/python tools/test.py` | 0 | 359 passed, 3 skipped in 19.7 s |
+| `.venv/bin/python tools/build.py --stub` | 0 | `build/stub/MajestyRecomp.app` |
+| `.venv/bin/python tools/build.py` | 0 | `build/MajestyRecomp.app`, the translated app |
+
+`build/cmake/macos-stub/generated/game_config.h` carries
+`RECOMP_CONTROLS_DEFAULT_LAYOUT "pad+keys"` and the whole
+`RECOMP_CONTROLS_MAPPED` table. No layout of this repository's own ships; the
+built-in pad is already this shape, and the game's 800x600 letterboxing leaves
+98-pixel pillars for the overlay to sit in.
+
+Not run, and why: `--gameplay` needs a `smoke/native-options.script` this
+repository does not have, and its assertions are Populous-shaped anyway (a
+`3840x2160 16bpp` mode and a texture pack's HD draws), so the kit's native
+Options rows remain unverified against a real translated game. `--mods`
+requires the snapshot `frame32._data_00598000.bin`, a Populous data address
+hardcoded in `kit/tools/test.py`, and this port's mod loader has no symbol
+table to work from. Nothing was played by hand: the pad has never been under a
+thumb at this pin.
+
 #### 2026-09-14: movies play on the iPad (Task 2.3)
 
 Built from the orchestrator's shell with `tools/build.py --target ios
