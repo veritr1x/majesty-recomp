@@ -996,3 +996,13 @@ Evidence remains ignored under `build/`: `ipad-update-config-tests.log`,
 `ipad-update-smoke/quest-20s.png`, `ipad-update-device.png`,
 `ipad-update-ios-final-build.log`, `ipad-update-install-final.json`, and
 `ipad-update-device-final.png`.
+
+
+The final shared pin is `bbdc3b0`, adding exclusive DirectDraw window refreshes
+after movie mode switches. Desktop and signed iOS builds were repeated, all five
+configuration tests passed, and the app was updated in place again. The local
+touch freestyle script again displayed terrain, buildings and units in the
+Beginner Random quest (`build/display-mode-smoke/quest.png`). This remains local
+quest evidence; the final iPad build's quest view has not been exercised.
+Records: `build/display-mode-smoke/host.log`, `build/display-mode-local-build.log`,
+`build/display-mode-ios-build.log` and `build/display-mode-install.json`.
