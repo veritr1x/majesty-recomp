@@ -969,3 +969,30 @@ Order of work from here, all of it in the kit:
 4. Only then the hooks: replace the sentinels in `game.toml` with the frame
    clock and cursor addresses the listings name, and decide what the input
    hooks mean for a game without DirectInput.
+
+
+#### 2026-09-21: shared iPad runtime update
+
+The kit now pins `9e97515`, including touch coordinates, moving stick knobs,
+keyboard visibility, simultaneous-control regression coverage and the merged
+Metal Fatigue runtime work. The five game configuration tests passed; the
+translated desktop smoke host and signed iOS app rebuilt successfully. The
+seven-step local menu script completed and its composite capture displayed the
+main menu. The signed app was updated in place on the iPad, preserving its
+container, and opening movie playback was visually confirmed.
+
+The mouse-based freestyle script stopped at 8 of 14 steps with the watchdog.
+Using touch taps allowed the campaign-map probe to complete all 15 steps.
+A separate touch-based freestyle run then completed and visually displayed
+the Beginner Random quest, including terrain, palace, units and a temple.
+The physical iPad capture showed its quest HUD and minimap but a black world
+area with host settings open; the cause of that device view is not established.
+The successful local world rendering does not verify iPad mission play.
+
+Evidence remains ignored under `build/`: `ipad-update-config-tests.log`,
+`ipad-update-smoke/menu-only.log`, `ipad-update-smoke/verified-menu.png`,
+`ipad-update-smoke/host.log`, `ipad-update-smoke/campaign.log`,
+`ipad-update-smoke/campaign-touch.log`, `ipad-update-smoke/freestyle-touch.log`,
+`ipad-update-smoke/quest-20s.png`, `ipad-update-device.png`,
+`ipad-update-ios-final-build.log`, `ipad-update-install-final.json`, and
+`ipad-update-device-final.png`.
