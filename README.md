@@ -75,7 +75,7 @@ cloning with `--recurse-submodules` checks out that commit automatically.
 git clone --recurse-submodules https://github.com/veritr1x/majesty-recomp.git
 cd majesty-recomp
 python3 -m venv .venv
-.venv/bin/python -m pip install -r kit/requirements-dev.txt
+.venv/bin/python -m pip install --require-hashes --only-binary=:all: -r kit/requirements.lock
 innoextract --extract --output-dir original/gog "/path/to/setup_majesty_gold_hd_1.5.2.28_(24283).exe"
 .venv/bin/python tools/setup.py --install original/gog --link-only
 .venv/bin/python tools/analyze.py --ghidra-home /path/to/ghidra_12.1.3_PUBLIC
@@ -116,7 +116,7 @@ sudo apt-get install -y -qq clang lld build-essential pkg-config libasound2-dev 
   libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev \
   mesa-vulkan-drivers glslc
 python3 -m venv .venv
-.venv/bin/python -m pip install -r kit/requirements-dev.txt
+.venv/bin/python -m pip install --require-hashes --only-binary=:all: -r kit/requirements.lock
 .venv/bin/python tools/setup.py --install original/gog --link-only
 .venv/bin/python tools/analyze.py --ghidra-home /path/to/ghidra_12.1.3_PUBLIC
 .venv/bin/python tools/build.py --regenerate --jobs 8
