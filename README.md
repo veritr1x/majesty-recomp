@@ -1,5 +1,7 @@
 # Majesty Recomp
 
+[Browser setup and streaming](docs/web.md)
+
 [Build & contribute](CONTRIBUTING.md) · [Port analysis](docs/analysis.md) ·
 [Testing](docs/testing.md) · [Changelog](CHANGELOG.md)
 

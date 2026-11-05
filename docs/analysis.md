@@ -1020,3 +1020,23 @@ Windows x64/Vulkan: the Beginner Random quest renders and arrow input pans the w
 These are bounded checks using hash-matched inputs and isolated profiles.
 Movies were disabled; full campaigns, performance and new physical-device
 validation are not established. Original inputs and player saves are preserved.
+
+## 2026-11-05 shared kit and browser streaming refresh
+
+On Windows/Chromium 145 with hardware WebGPU, a fresh streamed profile reached
+Freestyle Beginner gameplay: terrain, palace and units rendered, and keyboard
+camera movement changed the view. The in-game save menu wrote a 332,968-byte
+save into OPFS; the load menu found it and returned to the quest. This was an
+in-session reload, not a browser-restart persistence test. The 176-file stream
+mounted without copying game assets into OPFS. No JavaScript exception, failed
+asset request or WebGPU validation error was observed. Five portable game
+tests pass. A full campaign, audible output and other browsers remain untested.
+
+The real WebAssembly build passes on kit `1cbd81c`; see [web.md](web.md)
+for preparation, source selection and browser limitations. Earlier platform
+results above are historical and were not rerun in full.
+
+A later player-navigation check did not find the earlier quest/family files
+in the tested OPFS profile. The removal point and cause were not isolated;
+this evidence establishes in-session behavior only. Cross-launch save
+persistence needs a controlled follow-up before it can be claimed.
