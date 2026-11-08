@@ -70,3 +70,14 @@ A later player-navigation check did not find the earlier quest/family files
 in the tested OPFS profile. The removal point and cause were not isolated;
 this evidence establishes in-session behavior only. Cross-launch save
 persistence needs a controlled follow-up before it can be claimed.
+
+## Kit refresh to 92c01c7
+
+Updated to recomp-kit `92c01c7814c79b9206c45200c888299eca43b7a6`. The
+translation was regenerated and the real Emscripten 6.0.11 build passes.
+The project tests pass; the kit's portable suite shows only the same four
+Windows environment failures as the previous pin (symlink privilege, no
+native compiler, Linux packaging). On Windows/Chromium 145 with hardware
+WebGPU, a fresh streamed profile reached the main menu (Return skips both movies), matching a build of the
+previous kit pin run the same way. Deeper play was not rechecked here:
+synthetic CDP mouse moves do not move the game cursor in either build.

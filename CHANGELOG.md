@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Update recomp-kit to `92c01c7`: faster x87 translation, accurate browser
+  sleeps for steadier frame pacing, typed capitals with Shift, Winsock
+  reported as network-down, crash reports in the web player and HTTPS
+  serving for LAN play. The translation is regenerated.
+
 - Update recomp-kit to `1cbd81c` for optional browser asset streaming, the
   corrected bounded fetch backend and fixed-function WebGPU shader fixes.
   Preserve folder import and OPFS profiles; document browser validation.
